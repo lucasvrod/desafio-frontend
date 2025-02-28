@@ -40,6 +40,13 @@ npm run test:coverage
 # ou
 yarn test:coverage
 ```
+
+### **5️⃣ Executar Storybook**
+```bash
+npm run storybook
+# ou
+yarn storybook
+```
 ---
 
 ## 📩 Contato
