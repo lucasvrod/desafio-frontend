@@ -16,6 +16,7 @@ export const useProducts = ({
   initialSort,
 }: UseProductsProps = {}) => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,17 +25,29 @@ export const useProducts = ({
   const [category, setCategory] = useState(initialCategory);
   const [sort, setSort] = useState<'asc' | 'desc' | undefined>(initialSort);
 
-  const loadProducts = useCallback(async () => {
+  const loadAllProducts = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await fetchProducts(
-        pageSize,
-        (page - 1) * pageSize,
-        category,
-        sort
-      );
+      const data = await fetchProducts(100, 0);
+      setAllProducts(data);
+      setError(null);
+    } catch (err) {
+      setError('Erro ao carregar produtos. Tente novamente mais tarde.');
+      console.error('Erro ao carregar todos os produtos:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const applyFiltersAndSort = useCallback(() => {
+    try {
+      let result = [...allProducts];
       
-      const sortedProducts = [...data].sort((a, b) => {
+      if (category) {
+        result = result.filter(product => product.category === category);
+      }
+      
+      result = [...result].sort((a, b) => {
         const aIsHighRated = a.rating.rate > 4.5;
         const bIsHighRated = b.rating.rate > 4.5;
         
@@ -50,16 +63,18 @@ export const useProducts = ({
         return 0;
       });
       
-      setProducts(sortedProducts);
-      setFilteredProducts(sortedProducts);
-      setError(null);
+      setFilteredProducts(result);
+      
     } catch (err) {
-      setError('Erro ao carregar produtos. Tente novamente mais tarde.');
-      console.error(err);
-    } finally {
-      setLoading(false);
+      console.error('Erro ao aplicar filtros:', err);
     }
-  }, [page, pageSize, category, sort]);
+  }, [allProducts, category, sort]);
+
+  const applyPagination = useCallback(() => {
+    const startIndex = (page - 1) * pageSize;
+    const paginatedProducts = filteredProducts.slice(startIndex, startIndex + pageSize);
+    setProducts(paginatedProducts);
+  }, [filteredProducts, page, pageSize]);
 
   const loadCategories = useCallback(async () => {
     try {
@@ -71,16 +86,29 @@ export const useProducts = ({
   }, []);
 
   useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
+    loadAllProducts();
+    loadCategories();
+  }, [loadAllProducts, loadCategories]);
 
   useEffect(() => {
-    loadCategories();
-  }, [loadCategories]);
+    if (allProducts.length > 0) {
+      applyFiltersAndSort();
+    }
+  }, [allProducts, category, sort, applyFiltersAndSort]);
+
+  useEffect(() => {
+    applyPagination();
+  }, [page, filteredProducts, applyPagination]);
+
+  const refresh = useCallback(() => {
+    setCategory(undefined);
+    setSort(undefined);
+    setPage(initialPage);
+    loadAllProducts();
+  }, [loadAllProducts, initialPage]);
 
   return {
     products,
-    filteredProducts,
     categories,
     loading,
     error,
@@ -90,6 +118,8 @@ export const useProducts = ({
     setCategory,
     sort,
     setSort,
-    refresh: loadProducts,
+    refresh,
+    totalItems: filteredProducts.length,
+    totalPages: Math.ceil(filteredProducts.length / pageSize) || 1
   };
 };

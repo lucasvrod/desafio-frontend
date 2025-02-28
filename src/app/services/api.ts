@@ -3,7 +3,7 @@ import { Product, ProductInput } from '../types/product';
 const API_URL = 'https://fakestoreapi.com';
 
 export const fetchProducts = async (
-  limit: number = 10, 
+  limit: number = 0, 
   skip: number = 0,
   category?: string,
   sort?: 'asc' | 'desc'

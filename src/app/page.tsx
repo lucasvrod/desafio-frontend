@@ -27,10 +27,9 @@ export default function Home() {
     setCategory,
     sort,
     setSort,
-    refresh
+    refresh,
+    totalPages
   } = useProducts({ initialPage: 1, pageSize: 12 });
-  
-  const totalPages = 3; // Fake Store API não retorna total 
   
   return (
     <main className="container mx-auto py-8 px-4">
