@@ -5,6 +5,13 @@ Este projeto é uma aplicação desenvolvida para o desafio de Front-End, com o 
 
 ---
 
+---
+
+## 📸 Projeto
+![Responsive Website Design](src/image/repsonsive_website_design.png)
+
+---
+
 ## 🚀 Como Executar o Projeto
 
 ### **1️⃣ Clonar o Repositório**
